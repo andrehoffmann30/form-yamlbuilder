@@ -50,6 +50,9 @@ class JsonConfigurationViewHelper extends AbstractViewHelper
      */
     protected $securityContext;
 
+    /**
+     * @throws Exception
+     */
     public function initializeArguments()
     {
         parent::initializeArguments();
