@@ -12,8 +12,14 @@ namespace Neos\Form\YamlBuilder\ViewHelpers;
  */
 
 use Neos\Flow\Annotations as Flow;
+use Neos\Flow\Mvc\Exception\NoSuchArgumentException;
+use Neos\Flow\Mvc\Routing\Exception\MissingActionNameException;
+use Neos\Flow\ResourceManagement\ResourceManager;
+use Neos\Flow\Security\Context;
 use Neos\FluidAdaptor\Core\ViewHelper\AbstractViewHelper;
 use Neos\FluidAdaptor\Core\ViewHelper\Exception;
+use Neos\Form\Exception\PresetNotFoundException;
+use Neos\Form\Factory\ArrayFormFactory;
 use Neos\Form\Utility\SupertypeResolver;
 
 /**
@@ -28,29 +34,41 @@ class JsonConfigurationViewHelper extends AbstractViewHelper
 
     /**
      * @Flow\Inject
-     * @var \Neos\Flow\ResourceManagement\ResourceManager
+     * @var ResourceManager
      */
     protected $resourceManager;
 
     /**
      * @Flow\Inject
-     * @var \Neos\Form\Factory\ArrayFormFactory
+     * @var ArrayFormFactory
      */
     protected $formBuilderFactory;
 
     /**
      * @Flow\Inject
-     * @var \Neos\Flow\Security\Context
+     * @var Context
      */
     protected $securityContext;
 
+    public function initializeArguments()
+    {
+        parent::initializeArguments();
+        $this->registerArgument('presetName', 'string', false, 'default');
+    }
+
     /**
-     * @param string $presetName
      * @return string
+     * @throws Exception
+     * @throws \Neos\Flow\Http\Exception
+     * @throws NoSuchArgumentException
+     * @throws MissingActionNameException
+     * @throws PresetNotFoundException
      */
-    public function render($presetName = 'default')
+    public function render()
     {
         $mergedConfiguration = [];
+
+        $presetName = $this->arguments['presetName'];
 
         $presetConfiguration = $this->formBuilderFactory->getPresetConfiguration($presetName);
         $supertypeResolver = new SupertypeResolver($presetConfiguration['formElementTypes']);
@@ -105,7 +123,7 @@ class JsonConfigurationViewHelper extends AbstractViewHelper
     /**
      * @param string $resourcePath
      * @return string
-     * @throws \Neos\FluidAdaptor\Core\ViewHelper\Exception
+     * @throws Exception
      */
     protected function resolveResourcePath($resourcePath)
     {
